@@ -48,10 +48,14 @@ CR=$(get \
          --data-urlencode "lgtoken=${TOKEN}" \
          --request "POST")
 
+changes() {
+    get \
+        --data-urlencode "action=query" \
+        --data-urlencode "list=recentchanges" \
+        --data-urlencode "rcshow=!patrolled" \
+        --data-urlencode "rcprop=ids|comment" \
+        --data-urlencode "rclimit=50"
+}
+
 get \
-    --data-urlencode "action=query" \
-    --data-urlencode "list=recentchanges" \
-    --data-urlencode "rcshow=!patrolled" \
-    --data-urlencode "rcprop=ids|comment" \
-    --data-urlencode "rclimit=50" |
-    jq '.query.recentchanges | map(select(.comment | startswith("")))'
+    changes | jq '.query.recentchanges | map(select(.comment | startswith("")))'
