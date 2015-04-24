@@ -53,6 +53,7 @@ changes() {
         --data-urlencode "action=query" \
         --data-urlencode "list=recentchanges" \
         --data-urlencode "rcshow=!patrolled" \
+        --data-urlencode "rcnamespace=0" \
         --data-urlencode "rcprop=ids|comment" \
         --data-urlencode "rclimit=50"
 }
