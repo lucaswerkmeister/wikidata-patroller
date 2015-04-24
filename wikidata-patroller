@@ -57,5 +57,25 @@ changes() {
         --data-urlencode "rclimit=50"
 }
 
-get \
-    changes | jq '.query.recentchanges | map(select(.comment | startswith("")))'
+# input: literal start of comments
+# output: those revisions matching that start, in the format:
+# revid comment
+# 212664081 /* clientsitelink-update:0|Xwiki|Xwiki:FOO|Xwiki:BAR */
+filterchanges() {
+    changes | jq --raw-output '
+        .query.recentchanges |
+        map(select(.comment | startswith("'"$1"'"))) |
+        map((.revid | tostring) + " " + .comment) |
+        .[]'
+}
+
+pagemoves() {
+    filterchanges "/* clientsitelink-update:0|"
+}
+pageremoves() {
+    filterchanges "/* clientsitelink-remove:1|| */ "
+}
+
+pagemoves
+
+pageremoves
