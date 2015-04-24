@@ -77,6 +77,18 @@ pageremoves() {
     filterchanges "/* clientsitelink-remove:1|| */ "
 }
 
-pagemoves
+apiurl() {
+    if [[ "$1" =~ .*wiki ]]; then
+        echo "https://${1%wiki}.wikipedia.org/w/api.php"
+    else
+        return 1
+    fi
+    # TODO: w
+}
+
+pagemoves | while read revid comment; do
+    wikicode="$(sed 's#^/\* clientsitelink-update:0|\([^|]*\)|.*$#\1#' <<< "$comment")" || continue
+    apiurl=$(apiurl "$wikicode") || continue
+done
 
 pageremoves
