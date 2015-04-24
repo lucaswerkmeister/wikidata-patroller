@@ -11,21 +11,27 @@ api='http://www.wikidata.org/w/api.php'
 cookie_jar="wikicj"
 user_agent="$user Patroller Bot Development"
 
+get() {
+    curl -s -S \
+         --location \
+         --cookie $cookie_jar \
+         --cookie-jar $cookie_jar \
+         --user-agent "$user_agent" \
+         --keepalive-time 60 \
+         --header "Accept-Language: en-us" \
+         --header "Connection: keep-alive" \
+         --compressed \
+         --data-urlencode "format=json" \
+         "$@" \
+         "$api"
+}
+
 #Login part 1
-CR=$(curl -s -S \
-          --location \
-          --retry 2 \
-          --retry-delay 5\
-          --cookie $cookie_jar \
-          --cookie-jar $cookie_jar \
-          --user-agent "$user_agent" \
-          --keepalive-time 60 \
-          --header "Accept-Language: en-us" \
-          --header "Connection: keep-alive" \
-          --compressed \
-          --data-urlencode "lgname=${user}" \
-          --data-urlencode "lgpassword=${password}" \
-          --request "POST" "${api}?action=login&format=json")
+CR=$(get \
+         --data-urlencode "action=login" \
+         --data-urlencode "lgname=${user}" \
+         --data-urlencode "lgpassword=${password}" \
+         --request "POST")
 
 TOKEN=$(echo "$CR" | jq --raw-output .login.token)
 if [ -z "$TOKEN" ]; then
@@ -35,35 +41,17 @@ if [ -z "$TOKEN" ]; then
 fi
 
 #Login part 2
-CR=$(curl -s -S \
-          --location \
-          --cookie $cookie_jar \
-          --cookie-jar $cookie_jar \
-          --user-agent "$user_agent" \
-          --keepalive-time 60 \
-          --header "Accept-Language: en-us" \
-          --header "Connection: keep-alive" \
-          --compressed \
-          --data-urlencode "lgname=${user}" \
-          --data-urlencode "lgpassword=${password}" \
-          --data-urlencode "lgtoken=${TOKEN}" \
-          --request "POST" "${api}?action=login&format=json")
+CR=$(get \
+         --data-urlencode "action=login" \
+         --data-urlencode "lgname=${user}" \
+         --data-urlencode "lgpassword=${password}" \
+         --data-urlencode "lgtoken=${TOKEN}" \
+         --request "POST")
 
-curl -s -S \
-     --location \
-     --cookie $cookie_jar \
-     --cookie-jar $cookie_jar \
-     --user-agent "$user_agent" \
-     --keepalive-time 60 \
-     --header "Accept-Language: en-us" \
-     --header "Connection: keep-alive" \
-     --compressed \
-     --data-urlencode "format=json" \
-     --data-urlencode "action=query" \
-     --data-urlencode "meta=userinfo" \
-     --data-urlencode "list=recentchanges" \
-     --data-urlencode "rcshow=!patrolled" \
-     --data-urlencode "rcprop=ids|comment" \
-     --data-urlencode "rclimit=50" \
-     "${api}" |
+get \
+    --data-urlencode "action=query" \
+    --data-urlencode "list=recentchanges" \
+    --data-urlencode "rcshow=!patrolled" \
+    --data-urlencode "rcprop=ids|comment" \
+    --data-urlencode "rclimit=50" |
     jq '.query.recentchanges | map(select(.comment | startswith("")))'
