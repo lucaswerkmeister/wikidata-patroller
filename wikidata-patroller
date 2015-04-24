@@ -89,6 +89,10 @@ apiurl() {
 pagemoves | while read revid comment; do
     wikicode="$(sed 's#^/\* clientsitelink-update:0|\([^|]*\)|.*$#\1#' <<< "$comment")" || continue
     apiurl=$(apiurl "$wikicode") || continue
+    # evil sed hackery to make it `s` if it doesn’t match:
+    # t branches to LABEL iff the last `s` matched; q quits with code X; : defines LABEL.
+    oldpage="$(sed 's#^/\* clientsitelink-update:0|\([^|]*\)|\1:\([^|]*\)|\1:\(.*\) \*/$#\2#; t ok; q 1; : ok' <<< "$comment")" || continue
+    newpage="$(sed 's#^/\* clientsitelink-update:0|\([^|]*\)|\1:\([^|]*\)|\1:\(.*\) \*/$#\3#; t ok; q 1; : ok' <<< "$comment")" || continue
 done
 
 pageremoves
