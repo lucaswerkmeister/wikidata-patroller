@@ -1,0 +1,69 @@
+#!/bin/bash
+
+# login based on https://www.mediawiki.org/wiki/API:Client_code/Bash
+
+read user password < auth
+if [ -z "$user" -o -z "$password" ]; then
+    echo "$0: error: no authentication data found in \`auth\` file" >&2
+    exit 1
+fi
+api='http://www.wikidata.org/w/api.php'
+cookie_jar="wikicj"
+user_agent="$user Patroller Bot Development"
+
+#Login part 1
+CR=$(curl -s -S \
+          --location \
+          --retry 2 \
+          --retry-delay 5\
+          --cookie $cookie_jar \
+          --cookie-jar $cookie_jar \
+          --user-agent "$user_agent" \
+          --keepalive-time 60 \
+          --header "Accept-Language: en-us" \
+          --header "Connection: keep-alive" \
+          --compressed \
+          --data-urlencode "lgname=${user}" \
+          --data-urlencode "lgpassword=${password}" \
+          --request "POST" "${api}?action=login&format=json")
+
+TOKEN=$(echo "$CR" | jq --raw-output .login.token)
+if [ -z "$TOKEN" ]; then
+    echo "Login part 1 failed."
+    echo $CR
+    exit 1
+fi
+
+#Login part 2
+CR=$(curl -s -S \
+          --location \
+          --cookie $cookie_jar \
+          --cookie-jar $cookie_jar \
+          --user-agent "$user_agent" \
+          --keepalive-time 60 \
+          --header "Accept-Language: en-us" \
+          --header "Connection: keep-alive" \
+          --compressed \
+          --data-urlencode "lgname=${user}" \
+          --data-urlencode "lgpassword=${password}" \
+          --data-urlencode "lgtoken=${TOKEN}" \
+          --request "POST" "${api}?action=login&format=json")
+
+curl -s -S \
+     --location \
+     --cookie $cookie_jar \
+     --cookie-jar $cookie_jar \
+     --user-agent "$user_agent" \
+     --keepalive-time 60 \
+     --header "Accept-Language: en-us" \
+     --header "Connection: keep-alive" \
+     --compressed \
+     --data-urlencode "format=json" \
+     --data-urlencode "action=query" \
+     --data-urlencode "meta=userinfo" \
+     --data-urlencode "list=recentchanges" \
+     --data-urlencode "rcshow=!patrolled" \
+     --data-urlencode "rcprop=ids|comment" \
+     --data-urlencode "rclimit=50" \
+     "${api}" |
+    jq '.query.recentchanges | map(select(.comment | startswith("")))'
