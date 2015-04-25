@@ -79,7 +79,7 @@ pageremoves() {
 
 apiurl() {
     if [[ "$1" =~ wiki$ ]]; then
-        echo "https://${1%wiki}.wikipedia.org/w/api.php"
+        echo "https://${1%wiki}.wikipedia.org/w/api.php" # ${parameter%word}: remove matching suffix
     else
         return 1
     fi
