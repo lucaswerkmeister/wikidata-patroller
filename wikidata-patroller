@@ -83,7 +83,7 @@ apiurl() {
     else
         return 1
     fi
-    # TODO: w
+    # TODO: wikisource, wikivoyage, wikibooks, wikiquote, etc.
 }
 
 pagemoves | while read revid comment; do
