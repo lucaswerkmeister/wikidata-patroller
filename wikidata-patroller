@@ -8,7 +8,7 @@ if [ -z "$user" -o -z "$password" ]; then
     exit 1
 fi
 api='http://www.wikidata.org/w/api.php'
-cookie_jar="wikicj"
+cookie_jar="cookies"
 user_agent="$user Patroller Bot Development"
 
 get() {
