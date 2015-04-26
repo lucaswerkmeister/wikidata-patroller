@@ -27,28 +27,35 @@ get() {
          "$api"
 }
 
-#Login part 1
-CR=$(get \
-         --data-urlencode "action=login" \
-         --data-urlencode "lgname=${user}" \
-         --data-urlencode "lgpassword=${password}" \
-         --request "POST")
+loggedinuser=$(get \
+                   --data-urlencode "action=query" \
+                   --data-urlencode "meta=userinfo" |
+                      jq --raw-output '.query.userinfo.name')
 
-TOKEN=$(echo "$CR" | jq --raw-output .login.token)
-if [ -z "$TOKEN" ]; then
-    echo "Login part 1 failed."
-    echo $CR
-    exit 1
+if [[ "$loggedinuser" != "$user" ]]; then
+    #Login part 1
+    CR=$(get \
+             --data-urlencode "action=login" \
+             --data-urlencode "lgname=${user}" \
+             --data-urlencode "lgpassword=${password}" \
+             --request "POST")
+    
+    TOKEN=$(echo "$CR" | jq --raw-output .login.token)
+    if [ -z "$TOKEN" ]; then
+        echo "Login part 1 failed."
+        echo $CR
+        exit 1
+    fi
+    
+    #Login part 2
+    CR=$(get \
+             --data-urlencode "action=login" \
+             --data-urlencode "lgname=${user}" \
+             --data-urlencode "lgpassword=${password}" \
+             --data-urlencode "lgtoken=${TOKEN}" \
+             --request "POST")
 fi
-
-#Login part 2
-CR=$(get \
-         --data-urlencode "action=login" \
-         --data-urlencode "lgname=${user}" \
-         --data-urlencode "lgpassword=${password}" \
-         --data-urlencode "lgtoken=${TOKEN}" \
-         --request "POST")
-
+    
 changes() {
     get \
         --data-urlencode "action=query" \
