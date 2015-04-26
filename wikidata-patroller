@@ -7,7 +7,8 @@ if [ -z "$user" -o -z "$password" ]; then
     echo "$0: error: no authentication data found in \`auth\` file" >&2
     exit 1
 fi
-api='http://www.wikidata.org/w/api.php'
+wdapi='http://www.wikidata.org/w/api.php'
+api="$wdapi"
 cookie_jar="cookies"
 user_agent="$user Patroller Bot Development"
 
@@ -88,11 +89,21 @@ apiurl() {
 
 pagemoves | while read revid comment; do
     wikicode="$(sed 's#^/\* clientsitelink-update:0|\([^|]*\)|.*$#\1#' <<< "$comment")" || continue
-    apiurl=$(apiurl "$wikicode") || continue
+    api=$(apiurl "$wikicode") || continue
     # evil sed hackery to make `s` fail if it doesn’t match:
     # t branches to LABEL iff the last `s` matched; q quits with code X; : defines LABEL.
     oldpage="$(sed 's#^/\* clientsitelink-update:0|\([^|]*\)|\1:\([^|]*\)|\1:\(.*\) \*/$#\2#; t ok; q 1; : ok' <<< "$comment")" || continue
     newpage="$(sed 's#^/\* clientsitelink-update:0|\([^|]*\)|\1:\([^|]*\)|\1:\(.*\) \*/$#\3#; t ok; q 1; : ok' <<< "$comment")" || continue
+    content="$(get \
+                  --data-urlencode "action=query" \
+                  --data-urlencode "titles=$newpage" \
+                  --data-urlencode "prop=redirects" \
+                  --data-urlencode "rdprop=title" |
+                  jq '.query.pages | .[] | .redirects | .[] | select(.title == "'"$oldpage"'") | .title')"
+    if [[ -n "$content" ]]; then
+        # TODO
+        echo "patrol $revid"
+    fi
 done
 
 pageremoves
