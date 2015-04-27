@@ -12,6 +12,17 @@ api="$wdapi"
 cookie_jar="cookies"
 user_agent="$user Patroller Bot Development"
 
+latest() {
+    if [[ -r latest ]]; then
+        stored=$(<latest)
+        if [[ "$stored" =~ [0-9]{14} ]]; then
+            echo $stored
+            return
+        fi
+    fi
+    date -u -d '15 minutes ago' '+%Y%m%d%H%M%S'
+}
+
 get() {
     curl -s -S \
          --location \
@@ -65,26 +76,31 @@ patroltoken=$(get \
     exit 1
 }
     
-changes() {
-    get \
-        --data-urlencode "action=query" \
-        --data-urlencode "list=recentchanges" \
-        --data-urlencode "rcshow=!patrolled" \
-        --data-urlencode "rcnamespace=0" \
-        --data-urlencode "rcprop=ids|comment" \
-        --data-urlencode "rclimit=50"
-}
+changes="$(get \
+    --data-urlencode "action=query" \
+    --data-urlencode "list=recentchanges" \
+    --data-urlencode "rcshow=!patrolled" \
+    --data-urlencode "rcnamespace=0" \
+    --data-urlencode "rcprop=ids|comment|timestamp" \
+    --data-urlencode "rclimit=50" \
+    --data-urlencode "rcstart=$(date -u '+%Y%m%d%H%M%S')" \
+    --data-urlencode "rcend=$(latest)")"
+
+latestchange=$(jq --raw-output '.query.recentchanges[0].timestamp' <<< "$changes" | tr -d 'TZ:-')
+if [[ "$latestchange" =~ [0-9]{14} ]]; then
+    echo "$latestchange" > latest
+fi
 
 # input: literal start of comments
 # output: those revisions matching that start, in the format:
 # revid comment
 # 212664081 /* clientsitelink-update:0|Xwiki|Xwiki:FOO|Xwiki:BAR */
 filterchanges() {
-    changes | jq --raw-output '
+    jq --raw-output '
         .query.recentchanges |
         map(select(.comment | startswith("'"$1"'"))) |
         map((.revid | tostring) + " " + .comment) |
-        .[]'
+        .[]' <<< "$changes"
 }
 
 pagemoves() {
