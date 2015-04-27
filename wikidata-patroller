@@ -116,9 +116,13 @@ pagemoves | while read revid comment; do
                   --data-urlencode "prop=redirects" \
                   --data-urlencode "rdprop=title" |
                   jq '.query.pages | .[] | .redirects | .[] | select(.title == "'"$oldpage"'") | .title')" || continue
+    api="$wdapi"
     if [[ -n "$content" ]]; then
-        # TODO
-        echo "patrol $revid"
+        get \
+            --data-urlencode "action=patrol" \
+            --data-urlencode "token=$patroltoken" \
+            --data-urlencode "revid=$revid" \
+            --request "POST" > /dev/null
     fi
 done
 
