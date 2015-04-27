@@ -106,7 +106,7 @@ pagemoves | while read revid comment; do
                   --data-urlencode "titles=$newpage" \
                   --data-urlencode "prop=redirects" \
                   --data-urlencode "rdprop=title" |
-                  jq '.query.pages | .[] | .redirects | .[] | select(.title == "'"$oldpage"'") | .title')"
+                  jq '.query.pages | .[] | .redirects | .[] | select(.title == "'"$oldpage"'") | .title')" || continue
     if [[ -n "$content" ]]; then
         # TODO
         echo "patrol $revid"
