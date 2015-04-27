@@ -55,6 +55,15 @@ if [[ "$loggedinuser" != "$user" ]]; then
              --data-urlencode "lgtoken=${TOKEN}" \
              --request "POST")
 fi
+
+patroltoken=$(get \
+    --data-urlencode "action=query" \
+    --data-urlencode "meta=tokens" \
+    --data-urlencode "type=patrol" |
+    jq --raw-output '.query.tokens.patroltoken') || {
+    echo "Couldn’t get patrol token" >&2
+    exit 1
+}
     
 changes() {
     get \
