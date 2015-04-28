@@ -20,7 +20,7 @@ latest() {
             return
         fi
     fi
-    date -u -d '15 minutes ago' '+%Y%m%d%H%M%S'
+    date -u -d '1 hour ago' '+%Y%m%d%H%M%S'
 }
 
 get() {
