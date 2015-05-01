@@ -10,7 +10,7 @@ fi
 wdapi='http://www.wikidata.org/w/api.php'
 api="$wdapi"
 cookie_jar="cookies"
-user_agent="$user Patroller Bot Development"
+user_agent="$user patroller bot (https://github.com/lucaswerkmeister/wikidata-patroller)"
 
 latest() {
     if [[ -r latest ]]; then
