@@ -11,6 +11,10 @@ This bot is intended to automatically patrol two kinds of changes which frequent
 Current status
 --------------
 
+Development of this bot is discontinued; I will instead use a [Wikidata user script](https://www.wikidata.org/wiki/User:DSGalaktos/checkMoveDiff.js) to verify the edits before I *manually* patrol them.
+
+Feel free to use it yourself, but be aware that [not everyone agrees that these edits should be automatically patrolled](https://www.wikidata.org/wiki/Wikidata:Bot_requests#Patrol_page_moves_and_deletes).
+
 Patrolling of page moves (1) is implemented on Wikipedias (wikisources etc. missing), patrolling of page deletions (2) isn’t.
 
 Usage
