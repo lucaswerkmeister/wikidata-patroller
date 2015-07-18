@@ -2,7 +2,7 @@
 
 # login based on https://www.mediawiki.org/wiki/API:Client_code/Bash
 
-read user password < auth
+read -r user password < auth
 if [ -z "$user" -o -z "$password" ]; then
     echo "$0: error: no authentication data found in \`auth\` file" >&2
     exit 1
